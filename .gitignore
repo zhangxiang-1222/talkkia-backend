@@ -1,0 +1,41 @@
+HELP.md
+# target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Files and Data ###
+/upload-dir/
+/target/
+./target/
+*.jar
+/src/main/resources/possible-point-327508-firebase-adminsdk-9gohw-3902500a66.json
+/src/main/resources/talkkia.p12
