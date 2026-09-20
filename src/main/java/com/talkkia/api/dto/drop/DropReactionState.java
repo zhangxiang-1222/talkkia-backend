@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IncrementCityListenResponse {
-    private Long cityId;
-    private Long listen;
+public class DropReactionState {
+    private Boolean liked;
+    private Boolean laughed;
 }

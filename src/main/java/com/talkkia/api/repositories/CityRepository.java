@@ -73,14 +73,6 @@ public class CityRepository {
         );
     }
 
-    public Long incrementListen(Long cityId) {
-        return jdbcTemplate.query(
-                "UPDATE cities SET listen = listen + 1 WHERE id = ? RETURNING listen",
-                (resultSet, rowNum) -> resultSet.getLong("listen"),
-                cityId
-        ).stream().findFirst().orElse(null);
-    }
-
     private City mapCity(ResultSet resultSet) throws SQLException {
         return new City(
                 resultSet.getLong("id"),

@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReplyListPageResponse {
     private Long dropId;
-    private String sort;
     private List<ReplyListItem> content;
     private Integer page;
     private Integer size;

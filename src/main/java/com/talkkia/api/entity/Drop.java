@@ -15,12 +15,12 @@ public class Drop {
     private Long cityId;
     private String audioUrl;
     private String status;
-    private Long confession;
     private Long funny;
     private Long opinion;
     private Long student;
     private Long random;
     private Long listen;
     private Long replyCount;
+    private Long likeCount;
     private Instant expiresAt;
 }

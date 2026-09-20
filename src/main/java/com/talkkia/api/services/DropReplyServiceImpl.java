@@ -18,7 +18,6 @@ import com.talkkia.api.dto.reply.ReplyReactionRequest;
 import com.talkkia.api.dto.reply.ReplyReactionResponse;
 import com.talkkia.api.entity.DropReply;
 import com.talkkia.api.entity.User;
-import com.talkkia.api.enums.DropReplySort;
 import com.talkkia.api.repositories.DropReplyRepository;
 import com.talkkia.api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,7 +95,6 @@ public class DropReplyServiceImpl implements DropReplyService {
     public ReplyListPageResponse findTopLevelReplies(
             Long userId,
             Long dropId,
-            String sort,
             Integer page,
             Integer size
     ) {
@@ -110,12 +108,10 @@ public class DropReplyServiceImpl implements DropReplyService {
 
         int resolvedPage = resolvePage(page);
         int resolvedSize = resolveSize(size, DEFAULT_TOP_LEVEL_PAGE_SIZE);
-        DropReplySort resolvedSort = DropReplySort.fromValue(sort);
         long totalElements = dropReplyRepository.countTopLevelReplies(dropId);
         List<ReplyListItem> content = dropReplyRepository.findTopLevelReplies(
                 userId,
                 dropId,
-                resolvedSort,
                 resolvedSize,
                 (long) resolvedPage * resolvedSize
         );
@@ -124,7 +120,6 @@ public class DropReplyServiceImpl implements DropReplyService {
 
         return new ReplyListPageResponse(
                 dropId,
-                resolvedSort.getValue(),
                 content,
                 resolvedPage,
                 resolvedSize,

@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReplyListRequest {
     private Long dropId;
-    private String sort;
     private Integer page;
     private Integer size;
 }

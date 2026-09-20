@@ -5,8 +5,10 @@ import com.talkkia.api.dto.upload.CreateUploadResponse;
 import com.talkkia.api.dto.upload.CompleteUploadRequest;
 import com.talkkia.api.dto.drop.DropListPageRequest;
 import com.talkkia.api.dto.drop.DropListPageResponse;
-import com.talkkia.api.dto.drop.IncrementCityListenRequest;
-import com.talkkia.api.dto.drop.IncrementCityListenResponse;
+import com.talkkia.api.dto.drop.DropReactionRequest;
+import com.talkkia.api.dto.drop.DropReactionResponse;
+import com.talkkia.api.dto.drop.IncrementDropListenRequest;
+import com.talkkia.api.dto.drop.IncrementDropListenResponse;
 import com.talkkia.api.dto.drop.LatestDropsPageRequest;
 import com.talkkia.api.dto.drop.LatestDropsPageResponse;
 import com.talkkia.api.dto.reply.ChildReplyListPageResponse;
@@ -428,7 +430,6 @@ public class AudioController {
                     dropReplyService.findTopLevelReplies(
                             Long.parseLong(userIdValue),
                             request.getDropId(),
-                            request.getSort(),
                             request.getPage(),
                             request.getSize()
                     );
@@ -650,6 +651,50 @@ public class AudioController {
         }
     }
 
+    @PostMapping("/drops/reaction")
+    public ResponseEntity<Object> setDropReaction(
+            @RequestHeader Map<String, String> headers,
+            @RequestBody DropReactionRequest request
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String userIdValue = headers.get("userid");
+            boolean authorized = CLIENT_TOKEN.equals(headers.get("client-token"))
+                    && userIdValue != null
+                    && userService.authenticateUser(
+                            Long.parseLong(userIdValue),
+                            headers.get("token")
+                    );
+            if (!authorized) {
+                response.put("success", false);
+                response.put("status", "ua00");
+                response.put("message", "Unauthorized Access.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            DropReactionResponse reactionResponse = dropService.setReaction(
+                    Long.parseLong(userIdValue),
+                    request
+            );
+            return ResponseEntity.ok(reactionResponse);
+        } catch (NoSuchElementException e) {
+            response.put("success", false);
+            response.put("status", "dr01");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(404).body(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("status", "aa00");
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("status", "se00");
+            response.put("message", "System error!");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @PostMapping("/latest-drops")
     public ResponseEntity<Object> getLatestUserDrops(
             @RequestHeader Map<String, String> headers,
@@ -686,15 +731,15 @@ public class AudioController {
         }
     }
 
-    @PostMapping("/city-listens/increment")
-    public ResponseEntity<Object> incrementCityListen(
+    @PostMapping("/drops/listens/increment")
+    public ResponseEntity<Object> incrementDropListen(
             @RequestHeader Map<String, String> headers,
-            @RequestBody IncrementCityListenRequest request
+            @RequestBody IncrementDropListenRequest request
     ) {
         Map<String, Object> response = new HashMap<>();
         try {
             if (request == null) {
-                throw new IllegalArgumentException("City listen request is required");
+                throw new IllegalArgumentException("Drop listen request is required");
             }
 
             String userIdValue = headers.get("userid");
@@ -708,11 +753,11 @@ public class AudioController {
                 return ResponseEntity.status(401).body(response);
             }
 
-            Long listen = cityService.incrementListen(request.getCityId());
-            return ResponseEntity.ok(new IncrementCityListenResponse(request.getCityId(), listen));
+            Long listen = dropService.incrementListen(request.getDropId());
+            return ResponseEntity.ok(new IncrementDropListenResponse(request.getDropId(), listen));
         } catch (NoSuchElementException e) {
             response.put("success", false);
-            response.put("status", "ct01");
+            response.put("status", "dr02");
             response.put("message", e.getMessage());
             return ResponseEntity.status(404).body(response);
         } catch (IllegalArgumentException e) {

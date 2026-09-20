@@ -7,6 +7,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import com.talkkia.api.dto.drop.DropListItem;
+import com.talkkia.api.dto.drop.DropReactionResponse;
+import com.talkkia.api.dto.drop.DropReactionState;
 import com.talkkia.api.entity.Drop;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,11 +18,11 @@ public class DropRepository {
 
     private static final String DROP_COLUMNS =
             "id, user_id, city_id, audio_url, status::text AS status, "
-                    + "confession, funny, opinion, student, random, listen, "
-                    + "reply_count, expires_at";
+                    + "funny, opinion, student, random, listen, "
+                    + "reply_count, like_count, expires_at";
 
     private static final String DROP_LIST_COLUMNS =
-            "d.id, d.user_id, d.city_id, c.city_name, d.audio_url, d.confession, d.funny, "
+            "d.id, d.user_id, d.city_id, c.city_name, d.audio_url, d.like_count, d.funny, "
                     + "d.opinion, d.student, d.random, d.listen, d.reply_count, "
                     + "COALESCE(udr.liked, FALSE) AS liked, "
                     + "COALESCE(udr.laughed, FALSE) AS laughed, d.created_at";
@@ -93,6 +95,17 @@ public class DropRepository {
         return Boolean.TRUE.equals(exists);
     }
 
+    public Long incrementListen(Long dropId) {
+        return jdbcTemplate.query(
+                "UPDATE drops SET listen = listen + 1 WHERE id = ? "
+                        + "AND status = 'approved'::drop_status "
+                        + "AND expires_at > CURRENT_TIMESTAMP "
+                        + "RETURNING listen",
+                (resultSet, rowNum) -> resultSet.getLong("listen"),
+                dropId
+        ).stream().findFirst().orElse(null);
+    }
+
     public int deleteOwnedDrop(Long userId, Long dropId) {
         return jdbcTemplate.update(
                 "DELETE FROM drops WHERE id = ? AND user_id = ?",
@@ -124,6 +137,102 @@ public class DropRepository {
         return null;
     }
 
+    public boolean lockAvailableDropForReaction(Long dropId) {
+        return !jdbcTemplate.query(
+                "SELECT id FROM drops WHERE id = ? "
+                        + "AND status = 'approved'::drop_status "
+                        + "AND expires_at > CURRENT_TIMESTAMP FOR UPDATE",
+                (resultSet, rowNum) -> resultSet.getLong("id"),
+                dropId
+        ).isEmpty();
+    }
+
+    public DropReactionState findReactionState(Long userId, Long dropId) {
+        return jdbcTemplate.query(
+                "SELECT liked, laughed FROM user_drop_reactions "
+                        + "WHERE user_id = ? AND drop_id = ?",
+                (resultSet, rowNum) -> new DropReactionState(
+                        resultSet.getBoolean("liked"),
+                        resultSet.getBoolean("laughed")
+                ),
+                userId,
+                dropId
+        ).stream().findFirst().orElse(new DropReactionState(false, false));
+    }
+
+    public int upsertReaction(
+            Long userId,
+            Long dropId,
+            boolean liked,
+            boolean laughed
+    ) {
+        return jdbcTemplate.update(
+                "INSERT INTO user_drop_reactions (drop_id, user_id, liked, laughed) "
+                        + "VALUES (?, ?, ?, ?) "
+                        + "ON CONFLICT (drop_id, user_id) DO UPDATE "
+                        + "SET liked = EXCLUDED.liked, laughed = EXCLUDED.laughed, "
+                        + "updated_at = CURRENT_TIMESTAMP",
+                dropId,
+                userId,
+                liked,
+                laughed
+        );
+    }
+
+    public int deleteReaction(Long userId, Long dropId) {
+        return jdbcTemplate.update(
+                "DELETE FROM user_drop_reactions WHERE user_id = ? AND drop_id = ?",
+                userId,
+                dropId
+        );
+    }
+
+    public DropReactionResponse updateReactionCounts(
+            Long dropId,
+            int likeDelta,
+            int funnyDelta,
+            boolean liked,
+            boolean laughed
+    ) {
+        return jdbcTemplate.query(
+                "UPDATE drops SET like_count = like_count + ?, funny = funny + ? "
+                        + "WHERE id = ? "
+                        + "AND like_count + ? >= 0 "
+                        + "AND funny + ? >= 0 "
+                        + "RETURNING id, like_count, funny",
+                (resultSet, rowNum) -> new DropReactionResponse(
+                        resultSet.getLong("id"),
+                        resultSet.getLong("like_count"),
+                        resultSet.getLong("funny"),
+                        liked,
+                        laughed
+                ),
+                likeDelta,
+                funnyDelta,
+                dropId,
+                likeDelta,
+                funnyDelta
+        ).stream().findFirst().orElse(null);
+    }
+
+    public DropReactionResponse findReactionSummary(
+            Long dropId,
+            boolean liked,
+            boolean laughed
+    ) {
+        return jdbcTemplate.query(
+                "SELECT id, like_count, funny FROM drops WHERE id = ?",
+                (resultSet, rowNum) -> new DropReactionResponse(
+                        resultSet.getLong("id"),
+                        resultSet.getLong("like_count"),
+                        resultSet.getLong("funny"),
+                        liked,
+                        laughed
+                ),
+                dropId
+        ).stream().findFirst().orElse(null);
+    }
+
     public List<DropListItem> findLatestAvailableDrops(
             Long userId,
             Long cityId,
@@ -138,7 +247,7 @@ public class DropRepository {
                         + "WHERE d.city_id = ? "
                         + "AND d.status = 'approved'::drop_status "
                         + "AND d.expires_at > CURRENT_TIMESTAMP "
-                        + "ORDER BY d.created_at ASC, d.id ASC LIMIT ? OFFSET ?",
+                        + "ORDER BY d.created_at DESC, d.id DESC LIMIT ? OFFSET ?",
                 (resultSet, rowNum) -> new DropListItem(
                         resultSet.getLong("id"),
                         resultSet.getLong("user_id"),
@@ -147,7 +256,7 @@ public class DropRepository {
                         resultSet.getLong("city_id"),
                         resultSet.getString("city_name"),
                         resultSet.getString("audio_url"),
-                        resultSet.getLong("confession"),
+                        resultSet.getLong("like_count"),
                         resultSet.getLong("funny"),
                         resultSet.getLong("opinion"),
                         resultSet.getLong("student"),
@@ -209,13 +318,13 @@ public class DropRepository {
                 resultSet.getLong("city_id"),
                 resultSet.getString("audio_url"),
                 resultSet.getString("status"),
-                resultSet.getLong("confession"),
                 resultSet.getLong("funny"),
                 resultSet.getLong("opinion"),
                 resultSet.getLong("student"),
                 resultSet.getLong("random"),
                 resultSet.getLong("listen"),
                 resultSet.getLong("reply_count"),
+                resultSet.getLong("like_count"),
                 expiresAt.toInstant()
         );
     }

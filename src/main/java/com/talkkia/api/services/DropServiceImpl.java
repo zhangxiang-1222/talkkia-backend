@@ -4,6 +4,9 @@ import com.talkkia.api.dto.drop.DeleteDropRequest;
 import com.talkkia.api.dto.drop.DropListItem;
 import com.talkkia.api.dto.drop.DropCityOption;
 import com.talkkia.api.dto.drop.DropListPageResponse;
+import com.talkkia.api.dto.drop.DropReactionRequest;
+import com.talkkia.api.dto.drop.DropReactionResponse;
+import com.talkkia.api.dto.drop.DropReactionState;
 import com.talkkia.api.dto.drop.LatestDropsPageResponse;
 import com.talkkia.api.entity.City;
 import com.talkkia.api.entity.Drop;
@@ -18,6 +21,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,6 +89,19 @@ public class DropServiceImpl implements DropService {
         }
 
         return dropRepository.isOwnedAndAvailable(userId, dropId);
+    }
+
+    @Override
+    public Long incrementListen(Long dropId) {
+        if (dropId == null || dropId <= 0) {
+            throw new IllegalArgumentException("Drop ID is required");
+        }
+
+        Long listen = dropRepository.incrementListen(dropId);
+        if (listen == null) {
+            throw new NoSuchElementException("Drop not found, expired, or unavailable");
+        }
+        return listen;
     }
 
     @Override
@@ -225,6 +242,111 @@ public class DropServiceImpl implements DropService {
                 item.setAvatarUrl(user.getPicture());
             }
         });
+    }
+
+    @Override
+    @Transactional
+    public DropReactionResponse setReaction(
+            Long userId,
+            DropReactionRequest request
+    ) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+        if (request == null) {
+            throw new IllegalArgumentException("Drop reaction request is required");
+        }
+        if (request.getDropId() == null || request.getDropId() <= 0) {
+            throw new IllegalArgumentException("Drop ID is required");
+        }
+        if (request.getEnabled() == null) {
+            throw new IllegalArgumentException("Reaction enabled state is required");
+        }
+
+        String reaction = normalizeReaction(request.getReaction());
+        if (!dropRepository.lockAvailableDropForReaction(request.getDropId())) {
+            throw new NoSuchElementException("Drop not found, expired, or unavailable");
+        }
+
+        DropReactionState currentState = dropRepository.findReactionState(
+                userId,
+                request.getDropId()
+        );
+        boolean currentLiked = Boolean.TRUE.equals(currentState.getLiked());
+        boolean currentLaughed = Boolean.TRUE.equals(currentState.getLaughed());
+        boolean targetLiked = "like".equals(reaction)
+                ? request.getEnabled() : currentLiked;
+        boolean targetLaughed = "funny".equals(reaction)
+                ? request.getEnabled() : currentLaughed;
+
+        if (currentLiked == targetLiked && currentLaughed == targetLaughed) {
+            return requireReactionSummary(
+                    request.getDropId(),
+                    targetLiked,
+                    targetLaughed
+            );
+        }
+
+        int stateUpdates;
+        if (!targetLiked && !targetLaughed) {
+            stateUpdates = dropRepository.deleteReaction(userId, request.getDropId());
+        } else {
+            stateUpdates = dropRepository.upsertReaction(
+                    userId,
+                    request.getDropId(),
+                    targetLiked,
+                    targetLaughed
+            );
+        }
+        if (stateUpdates != 1) {
+            throw new IllegalStateException("Failed to update drop reaction");
+        }
+
+        int likeDelta = reactionDelta(currentLiked, targetLiked);
+        int funnyDelta = reactionDelta(currentLaughed, targetLaughed);
+        DropReactionResponse response = dropRepository.updateReactionCounts(
+                request.getDropId(),
+                likeDelta,
+                funnyDelta,
+                targetLiked,
+                targetLaughed
+        );
+        if (response == null) {
+            throw new IllegalStateException("Failed to update drop reaction counts");
+        }
+        return response;
+    }
+
+    private String normalizeReaction(String reaction) {
+        if (!StringUtils.hasText(reaction)) {
+            throw new IllegalArgumentException("Reaction is required");
+        }
+        String normalizedReaction = reaction.trim().toLowerCase(Locale.ROOT);
+        if (!"like".equals(normalizedReaction)
+                && !"funny".equals(normalizedReaction)) {
+            throw new IllegalArgumentException("Reaction must be like or funny");
+        }
+        return normalizedReaction;
+    }
+
+    private int reactionDelta(boolean currentValue, boolean targetValue) {
+        return (targetValue ? 1 : 0) - (currentValue ? 1 : 0);
+    }
+
+    private DropReactionResponse requireReactionSummary(
+            Long dropId,
+            boolean liked,
+            boolean laughed
+    ) {
+        DropReactionResponse response = dropRepository.findReactionSummary(
+                dropId,
+                liked,
+                laughed
+        );
+        if (response == null) {
+            throw new IllegalStateException("Failed to read drop reaction summary");
+        }
+        return response;
     }
 
     @Override

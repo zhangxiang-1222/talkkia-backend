@@ -17,7 +17,7 @@ public class DropListItem {
     private Long cityId;
     private String cityName;
     private String audioUrl;
-    private Long confession;
+    private Long likeCount;
     private Long funny;
     private Long opinion;
     private Long student;

@@ -1,5 +1,6 @@
 package com.talkkia.api.services;
 
+import java.util.Collections;
 import java.util.NoSuchElementException;
 
 import com.talkkia.api.dto.reply.DeleteReplyRequest;
@@ -34,6 +35,32 @@ class DropReplyServiceImplTest {
 
     @InjectMocks
     private DropReplyServiceImpl dropReplyService;
+
+    @Test
+    void shouldFetchTopLevelRepliesInLatestOrder() {
+        when(dropReplyRepository.isDropAvailable(DROP_ID)).thenReturn(true);
+        when(dropReplyRepository.countTopLevelReplies(DROP_ID)).thenReturn(0L);
+        when(dropReplyRepository.findTopLevelReplies(
+                USER_ID,
+                DROP_ID,
+                10,
+                0L
+        )).thenReturn(Collections.emptyList());
+
+        dropReplyService.findTopLevelReplies(
+                USER_ID,
+                DROP_ID,
+                0,
+                10
+        );
+
+        verify(dropReplyRepository).findTopLevelReplies(
+                USER_ID,
+                DROP_ID,
+                10,
+                0L
+        );
+    }
 
     @Test
     void shouldAddLike() {

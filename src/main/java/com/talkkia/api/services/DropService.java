@@ -2,6 +2,8 @@ package com.talkkia.api.services;
 
 import com.talkkia.api.dto.drop.DeleteDropRequest;
 import com.talkkia.api.dto.drop.DropListPageResponse;
+import com.talkkia.api.dto.drop.DropReactionRequest;
+import com.talkkia.api.dto.drop.DropReactionResponse;
 import com.talkkia.api.dto.drop.LatestDropsPageResponse;
 import com.talkkia.api.entity.Drop;
 
@@ -17,6 +19,8 @@ public interface DropService {
 
     boolean isOwnedAndAvailable(Long userId, Long dropId);
 
+    Long incrementListen(Long dropId);
+
     boolean deleteDrop(Long userId, DeleteDropRequest request);
 
     Boolean findModerationDecision(Long dropId);
@@ -28,6 +32,8 @@ public interface DropService {
             boolean includeCityOptions,
             Integer page
     );
+
+    DropReactionResponse setReaction(Long userId, DropReactionRequest request);
 
     LatestDropsPageResponse findLatestUserDrops(Long userId, Integer page);
 }

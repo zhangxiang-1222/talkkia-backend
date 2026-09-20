@@ -1,0 +1,336 @@
+# One blocked keyword or phrase per line. Matching is case-insensitive.
+# Empty lines and lines beginning with # are ignored.
+# Keep phrases specific where possible to reduce false positives.
+
+# Pornographic and explicit sexual content
+explicit pornography
+pornographic video
+porn video
+hardcore porn
+rape porn
+incest porn
+bestiality porn
+sex tape
+explicit sex video
+nude photo sale
+nude video sale
+sexual services
+escort services
+buy nudes
+send nudes
+色情影片
+色情视频
+成人视频
+成人视频出售
+强奸色情
+乱伦色情
+兽交色情
+性爱录像
+性爱视频
+裸照出售
+裸聊服务
+性服务
+有偿约炮
+援交服务
+招嫖信息
+
+# Sexual exploitation or grooming involving minors
+child pornography
+child porn
+child sexual abuse
+child sexual exploitation
+child grooming
+grooming a minor
+sexual abuse material
+child sexual abuse material
+csam
+underage sex
+sex with minors
+minor nude photos
+nude children
+sexualize minors
+solicit a minor
+meet an underage girl
+meet an underage boy
+儿童色情
+儿童性虐待
+儿童性剥削
+儿童诱骗
+未成年色情
+未成年人性行为
+与未成年人发生性关系
+猥亵儿童
+性侵儿童
+诱骗未成年人
+未成年人裸照
+儿童裸照
+索要未成年裸照
+包养未成年
+
+# Credible threats, graphic violence, and violent wrongdoing
+i will kill you
+going to kill you
+gonna kill you
+i will shoot you
+i will stab you
+i will bomb you
+death threat
+bomb threat
+shoot up the school
+school shooting plan
+mass shooting plan
+beheading video
+torture video
+execution video
+graphic gore
+graphic murder
+how to murder someone
+how to poison someone
+how to hide a body
+hire a hitman
+我要杀了你
+我会杀了你
+我要弄死你
+我要砍死你
+我要枪杀你
+我要炸死你
+死亡威胁
+炸弹威胁
+校园枪击计划
+大规模枪击计划
+斩首视频
+虐杀视频
+处决视频
+血腥虐杀
+杀人教程
+投毒教程
+如何藏尸
+雇凶杀人
+
+# Hate speech targeting protected groups
+white supremacy
+racial superiority
+ethnic cleansing
+race extermination
+gas the jews
+kill all jews
+kill all muslims
+kill all immigrants
+kill all gay people
+nigger
+kike
+faggot
+种族优越论
+白人至上
+种族清洗
+种族灭绝
+杀光犹太人
+杀光穆斯林
+杀光移民
+杀光同性恋
+支那猪
+黑鬼
+死基佬
+
+# Targeted harassment, bullying, and intimidation
+kill yourself
+you should kill yourself
+go commit suicide
+you deserve to die
+i hope you die
+nobody wants you alive
+worthless piece of shit
+i will ruin your life
+i know where you live
+i am going to dox you
+你去死吧
+你应该去死
+你怎么不去死
+希望你去死
+没人希望你活着
+我要毁了你
+我知道你住哪里
+我要开盒你
+我要人肉你
+
+# Suicide and self-harm encouragement or instructions
+how to commit suicide
+suicide instructions
+suicide method
+painless suicide
+easiest way to die
+how to hang yourself
+how to cut your wrists
+self harm tutorial
+overdose to die
+lethal overdose amount
+encourage suicide
+自杀方法
+自杀教程
+如何自杀
+怎么自杀
+无痛自杀
+如何上吊
+上吊教程
+割腕教程
+自残教程
+服药自杀
+吃多少药会死
+鼓励自杀
+教人自杀
+
+# Weapons, explosives, and serious crime instructions
+how to make a bomb
+bomb making instructions
+homemade bomb instructions
+pipe bomb instructions
+build an explosive device
+molotov cocktail instructions
+how to make napalm
+how to build a ghost gun
+convert gun to automatic
+buy illegal weapons
+sell illegal weapons
+how to rob a bank
+home invasion tutorial
+kidnapping instructions
+evade the police
+dispose of a body
+制作炸弹
+炸弹制作教程
+自制炸弹
+土制炸弹
+爆炸装置教程
+燃烧瓶制作
+凝固汽油弹制作
+自制枪支
+枪支改全自动
+购买非法武器
+出售非法武器
+抢劫银行教程
+入室抢劫教程
+绑架教程
+逃避警察追捕
+处理尸体教程
+
+# Illegal drug manufacturing and trafficking
+how to make meth
+cook meth
+make crystal meth
+synthesize fentanyl
+make fentanyl
+manufacture cocaine
+buy illegal drugs
+sell illegal drugs
+drug trafficking
+darknet drugs
+制毒教程
+冰毒制作
+制作冰毒
+芬太尼合成
+制作芬太尼
+可卡因制作
+购买毒品
+出售毒品
+毒品交易
+网络贩毒
+
+# Fraud, scams, phishing, and credential theft
+phishing link
+phishing site
+phishing email
+steal a password
+steal login credentials
+steal credit card
+credit card scam
+carding tutorial
+fake payment receipt
+fake bank statement
+fake invoice scam
+guaranteed investment return
+guaranteed crypto profit
+double your money
+advance fee scam
+romance scam
+crypto giveaway scam
+send me your otp
+send your verification code
+send me your seed phrase
+send your wallet recovery phrase
+pay a release fee
+钓鱼链接
+钓鱼网站
+钓鱼邮件
+盗取密码
+盗取账号
+盗取登录凭证
+盗取信用卡
+信用卡诈骗
+信用卡盗刷教程
+伪造付款凭证
+伪造银行流水
+虚假发票诈骗
+保证投资收益
+保证加密货币收益
+资金翻倍
+杀猪盘
+恋爱诈骗
+虚假币赠送
+把验证码发给我
+把短信验证码发给我
+把助记词发给我
+把钱包恢复词发给我
+先交解冻费
+先交保证金
+转账解冻
+冒充客服退款
+
+# Private information disclosure and doxxing
+doxxing
+dox this person
+leak their address
+post their home address
+post their phone number
+social security number
+credit card number
+bank account password
+online banking password
+passport number
+identity card number
+人肉搜索
+网络开盒
+曝光他的住址
+曝光她的住址
+泄露家庭住址
+泄露手机号
+泄露身份证号
+泄露银行卡号
+身份证号码
+银行卡号码
+信用卡号码
+网银密码
+护照号码
+
+# Spam, gambling, and contact-information promotion
+add my whatsapp for investment
+contact me on telegram for investment
+dm me for guaranteed profit
+click this betting link
+online casino link
+illegal gambling site
+buy fake followers
+buy fake reviews
+刷单返利
+刷单兼职
+网络博彩
+在线赌场
+赌博网站
+博彩链接
+加我微信投资
+加我微信赚钱
+加我QQ投资
+私聊保证收益
+私聊带你赚钱
+点击链接领取奖金
+购买虚假粉丝
+购买虚假评论

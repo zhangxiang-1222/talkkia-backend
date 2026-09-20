@@ -8,7 +8,6 @@ import java.util.List;
 import com.talkkia.api.dto.reply.ReplyListItem;
 import com.talkkia.api.dto.reply.ReplyReactionResponse;
 import com.talkkia.api.entity.DropReply;
-import com.talkkia.api.enums.DropReplySort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -197,7 +196,6 @@ public class DropReplyRepository {
     public List<ReplyListItem> findTopLevelReplies(
             Long userId,
             Long dropId,
-            DropReplySort sort,
             int limit,
             long offset
     ) {
@@ -213,7 +211,7 @@ public class DropReplyRepository {
                         + "AND r.deleted_at IS NULL "
                         + "AND d.status = 'approved'::drop_status "
                         + "AND d.expires_at > CURRENT_TIMESTAMP "
-                        + orderBy(sort)
+                        + "ORDER BY r.created_at DESC, r.id DESC "
                         + " LIMIT ? OFFSET ?",
                 (resultSet, rowNum) -> mapReplyListItem(resultSet),
                 userId,
@@ -488,26 +486,6 @@ public class DropReplyRepository {
                 + alias + ".created_at, "
                 + alias + ".updated_at, "
                 + alias + ".deleted_at";
-    }
-
-    private String orderBy(DropReplySort sort) {
-        switch (sort) {
-            case LATEST:
-                return "ORDER BY r.created_at DESC, r.id DESC";
-            case MOST_LIKED:
-                return "ORDER BY r.like_count DESC, r.created_at DESC, r.id DESC";
-            case MOST_DISCUSSED:
-                return "ORDER BY r.child_reply_count DESC, r.created_at DESC, r.id DESC";
-            case RECOMMENDED:
-            default:
-                return "ORDER BY ("
-                        + "0.60 * LN(1.0 + r.like_count) "
-                        + "- 0.45 * LN(1.0 + r.dislike_count) "
-                        + "+ 0.25 * LN(1.0 + r.child_reply_count) "
-                        + "+ 0.15 * GREATEST(0.0, 1.0 - EXTRACT(EPOCH FROM "
-                        + "(CURRENT_TIMESTAMP - r.created_at)) / 86400.0)"
-                        + ") DESC, r.created_at DESC, r.id DESC";
-        }
     }
 
     private ReplyListItem mapReplyListItem(ResultSet resultSet) throws SQLException {

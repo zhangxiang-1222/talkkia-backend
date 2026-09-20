@@ -27,7 +27,6 @@ public interface DropReplyService {
     ReplyListPageResponse findTopLevelReplies(
             Long userId,
             Long dropId,
-            String sort,
             Integer page,
             Integer size
     );
