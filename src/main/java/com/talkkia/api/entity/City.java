@@ -1,5 +1,7 @@
 package com.talkkia.api.entity;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,4 +14,6 @@ public class City {
     private String countryCode;
     private String cityCode;
     private String cityName;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
 }

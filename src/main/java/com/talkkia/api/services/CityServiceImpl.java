@@ -9,9 +9,14 @@ import org.springframework.util.StringUtils;
 public class CityServiceImpl implements CityService {
 
     private final CityRepository cityRepository;
+    private final CityCoordinateService cityCoordinateService;
 
-    public CityServiceImpl(CityRepository cityRepository) {
+    public CityServiceImpl(
+            CityRepository cityRepository,
+            CityCoordinateService cityCoordinateService
+    ) {
         this.cityRepository = cityRepository;
+        this.cityCoordinateService = cityCoordinateService;
     }
 
     @Override
@@ -22,6 +27,7 @@ public class CityServiceImpl implements CityService {
             throw new IllegalArgumentException("Country code, city code, and city name are required");
         }
 
-        return cityRepository.resolveCity(countryCode, cityCode, cityName);
+        City city = cityRepository.resolveCity(countryCode, cityCode, cityName);
+        return cityCoordinateService.populateMissingCoordinates(city);
     }
 }
