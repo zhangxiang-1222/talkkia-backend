@@ -211,7 +211,7 @@ public class UserController {
     @PostMapping("/social-login")
     public ResponseEntity<Object> socialLogin(@RequestHeader("client-token") String clientToken, @RequestBody SocialLoginRequest values) {
         Map<String, Object> response = new HashMap<>();
-        log.info("social-login request: provider={}, email={}", values.getProvider(), values.getEmail());
+        log.info("11social-login request: provider={}, email={} inviteCode= {}", values.getProvider(), values.getEmail(), values.getInviteCode());
 
         try {
             if (!clientToken.equals(CLIENT_TOKEN)) {

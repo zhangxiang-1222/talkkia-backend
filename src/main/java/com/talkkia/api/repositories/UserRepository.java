@@ -74,6 +74,12 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
     @Query("RETURN exists((:User {id:$userId1})-[:CONTACT]-(:User {id:$userId2}))")
     public boolean contactExists(long userId1, long userId2);
 
+    @Query("MATCH (invitee:User {id: $inviteeUserId}), (inviter:User {id: $inviterUserId}) " +
+            "MERGE (invitee)-[contact:CONTACT]-(inviter) " +
+            "ON CREATE SET contact.hidemypost = false, contact.hidetheirpost = false")
+    public void mergeInviteContact(@Param("inviteeUserId") Long inviteeUserId,
+                                   @Param("inviterUserId") Long inviterUserId);
+
     @Query("OPTIONAL MATCH(user1:User {id:$userId1}), (user2:User {id:$userId2}) CREATE (user1)-[:CONTACT]->(user2)")
     public void addContact(long userId1, long userId2);
     

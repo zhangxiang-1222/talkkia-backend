@@ -17,6 +17,7 @@
     <properties> 
         <java.version>11</java.version> 
         <aws.java.sdk.version>2.46.8</aws.java.sdk.version>
+        <neo4j-migrations.version>1.16.4</neo4j-migrations.version>
     </properties>  
     <dependencyManagement>
         <dependencies>
@@ -46,6 +47,11 @@
         <dependency> 
             <groupId>org.springframework.boot</groupId>  
             <artifactId>spring-boot-starter-data-neo4j</artifactId> 
+        </dependency>
+        <dependency>
+            <groupId>eu.michael-simons.neo4j</groupId>
+            <artifactId>neo4j-migrations-spring-boot-starter</artifactId>
+            <version>${neo4j-migrations.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Locale;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 /*Services are self explanatery. start from the controller to see flow of the code 
@@ -62,6 +63,8 @@ public class UserServiceImpl implements UserService {
     Map<String, OTP> otps = new HashMap<>();
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private UserInviteService userInviteService;
 
     @Override
     public List<UserView> getUsers() {
@@ -168,6 +171,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Map<String, Object> verifySocialLogin(SocialLoginRequest request) {
         Map<String, Object> response = new HashMap<>();
 
@@ -260,53 +264,51 @@ public class UserServiceImpl implements UserService {
                 normalizedProviderUserId = null;
             }
 
-            User emailUser = null;
-            if (tokenEmail != null && !tokenEmail.trim().isEmpty() && emailVerified) {
-                emailUser = userRepository.findByEmail(tokenEmail).orElse(null);
+            User user = userRepository.findByFirebaseUid(firebaseUid).orElse(null);
+            if (user == null && tokenEmail != null && !tokenEmail.trim().isEmpty() && emailVerified) {
+                user = userRepository.findByEmail(tokenEmail).orElse(null);
             }
 
-            if (emailUser != null) {
-                emailUser.setFirebaseUid(firebaseUid);
-                emailUser.setSocialProvider(provider);
-                emailUser.setProviderUserId(normalizedProviderUserId);
+            boolean isNewUser = user == null;
+            User saved;
+            if (!isNewUser) {
+                user.setFirebaseUid(firebaseUid);
+                user.setSocialProvider(provider);
+                user.setProviderUserId(normalizedProviderUserId);
 //                if (displayName != null && !displayName.trim().isEmpty()) {
-//                    emailUser.setName(displayName);
+//                    user.setName(displayName);
 //                }
 //                if (picture != null && !picture.trim().isEmpty()) {
-//                    emailUser.setPicture(picture);
+//                    user.setPicture(picture);
 //                }
-                User saved = userRepository.save(emailUser);
-                UserView uv = userRepository.findOneById(saved.getId()).orElse(null);
-                response.put("success", true);
-                response.put("status", "ua04");
-                response.put("token", jwtTokenUtil.generateToken(saved.getId()));
-                response.put("data", uv);
-                return response;
-            }
-
-            User newUser = new User();
-            newUser.setId(setUserId());
-            while (userRepository.existsById(newUser.getId())) {
+                saved = userRepository.save(user);
+            } else {
+                User newUser = new User();
                 newUser.setId(setUserId());
+                while (userRepository.existsById(newUser.getId())) {
+                    newUser.setId(setUserId());
+                }
+                newUser.setName(displayName);
+                newUser.setEmail(tokenEmail);
+                newUser.setPicture(picture);
+                newUser.setFirebaseUid(firebaseUid);
+                newUser.setSocialProvider(provider);
+                newUser.setProviderUserId(normalizedProviderUserId);
+                newUser.setRegistrationDate(new DateTimeConverter().formatDate());
+                ///  写入默认数据
+                newUser.setGender("Female");
+                newUser.setRegion("PK");
+                newUser.setMobile("");
+                saved = userRepository.save(newUser);
             }
-            newUser.setName(displayName);
-            newUser.setEmail(tokenEmail);
-            newUser.setPicture(picture);
-            newUser.setFirebaseUid(firebaseUid);
-            newUser.setSocialProvider(provider);
-            newUser.setProviderUserId(normalizedProviderUserId);
-            newUser.setRegistrationDate(new DateTimeConverter().formatDate());
-            ///  写入默认数据
-            newUser.setGender("Female");
-            newUser.setRegion("PK");
-            newUser.setMobile("");
 
-            User saved = userRepository.save(newUser);
             UserView uv = userRepository.findOneById(saved.getId()).orElse(null);
             response.put("success", true);
             response.put("status", "ua04");
             response.put("token", jwtTokenUtil.generateToken(saved.getId()));
-            response.put("data", uv);
+            response.put("isNewUser", isNewUser);
+            response.put("data", toSocialLoginUserResponse(uv));
+            response.put("invite", userInviteService.processInvite(saved, isNewUser, request));
             return response;
         } catch (FirebaseAuthException e) {
             log.error("Firebase social login token verify failed. provider={}", provider, e);
@@ -316,11 +318,23 @@ public class UserServiceImpl implements UserService {
             return response;
         } catch (Exception e) {
             log.error("Social login verify system error. provider={}", provider, e);
-            response.put("success", false);
-            response.put("status", "se00");
-            response.put("message", "System error!");
-            return response;
+            throw new IllegalStateException("Social login processing failed.", e);
         }
+    }
+
+    private Map<String, Object> toSocialLoginUserResponse(UserView user) {
+        if (user == null) {
+            return null;
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", user.getId());
+        result.put("name", user.getName());
+        result.put("gender", user.getGender());
+        result.put("region", user.getRegion());
+        result.put("picture", user.getPicture());
+        result.put("mobile", user.getMobile());
+        result.put("email", user.getEmail());
+        return result;
     }
 
     @Override

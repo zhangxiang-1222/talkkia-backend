@@ -14,4 +14,5 @@ public class SocialLoginRequest {
     private String authorizationCode;
     private String email;
     private String displayName;
+    private String inviteCode;
 }
