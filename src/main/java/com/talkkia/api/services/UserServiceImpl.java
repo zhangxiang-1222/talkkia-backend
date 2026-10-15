@@ -272,16 +272,12 @@ public class UserServiceImpl implements UserService {
             boolean isNewUser = user == null;
             User saved;
             if (!isNewUser) {
-                user.setFirebaseUid(firebaseUid);
-                user.setSocialProvider(provider);
-                user.setProviderUserId(normalizedProviderUserId);
-//                if (displayName != null && !displayName.trim().isEmpty()) {
-//                    user.setName(displayName);
-//                }
-//                if (picture != null && !picture.trim().isEmpty()) {
-//                    user.setPicture(picture);
-//                }
-                saved = userRepository.save(user);
+                userRepository.updateSocialLoginIdentity(
+                        user.getId(),
+                        firebaseUid,
+                        provider,
+                        normalizedProviderUserId);
+                saved = user;
             } else {
                 User newUser = new User();
                 newUser.setId(setUserId());

@@ -79,7 +79,7 @@ public class RedisGeoUtil {
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo()
                 .radius(key, userId, new Distance(radius, Metrics.KILOMETERS), args);
 
-        log.info("Nearby Geo Results:{}", results);
+//        log.info("Nearby Geo Results:{}", results);
 
         List<SearchResultModel> locations = new ArrayList<>();
         for (GeoResult geoResult : results.getContent()) {

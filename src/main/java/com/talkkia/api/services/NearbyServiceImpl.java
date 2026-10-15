@@ -80,7 +80,7 @@ public class NearbyServiceImpl implements NearbyService {
                 // this user.
                 User user = userService.getUser(itemUserId);
                 if (user == null) {
-                    log.warn("Nearby user not found, skipping: {}", itemUserId);
+//                    log.warn("Nearby user not found, skipping: {}", itemUserId);
                     continue;
                 }
                 user.setContacts(new ArrayList<>());
@@ -100,7 +100,7 @@ public class NearbyServiceImpl implements NearbyService {
                      */
                     User user = userService.getUser(itemUserId);
                     if (user == null) {
-                        log.warn("Nearby user not found, skipping: {}", itemUserId);
+//                        log.warn("Nearby user not found, skipping: {}", itemUserId);
                         continue;
                     }
                     user.setContacts(new ArrayList<>());

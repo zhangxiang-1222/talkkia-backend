@@ -2,6 +2,7 @@ package com.talkkia.api.repositories;
 
 import com.talkkia.api.entity.User;
 import com.talkkia.api.view.CompleteUserView;
+import com.talkkia.api.view.ContactDiscoveryMatchView;
 import com.talkkia.api.view.UserDTO;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,16 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
 
     public Optional<UserView> findOneByMobile(String mobile);
 
+    @Query("MATCH (matched:User) " +
+            "WHERE matched.mobile IN $mobiles AND matched.id <> $ownerId " +
+            "RETURN matched.id AS id, matched.mobile AS mobile, matched.name AS name, " +
+            "matched.picture AS picture, " +
+            "exists((:User {id: $ownerId})-[:CONTACT]-(matched)) AS contact")
+    List<ContactDiscoveryMatchView> findContactDiscoveryMatches(
+            @Param("ownerId") Long ownerId,
+            @Param("mobiles") List<String> mobiles
+    );
+
     public Optional<UserView> findOneByEmail(String email);
 
     @Query("MATCH (u:User) " +
@@ -41,6 +52,15 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
     public Optional<User> findByEmail(String email);
 
     public Optional<User> findByFirebaseUid(String firebaseUid);
+
+    @Query("MATCH (u:User {id: $userId}) " +
+            "SET u.firebaseUid = $firebaseUid, " +
+            "u.socialProvider = $socialProvider, " +
+            "u.providerUserId = $providerUserId")
+    public void updateSocialLoginIdentity(@Param("userId") Long userId,
+                                          @Param("firebaseUid") String firebaseUid,
+                                          @Param("socialProvider") String socialProvider,
+                                          @Param("providerUserId") String providerUserId);
 
     @Query("MATCH (u:User) WHERE u.id IN $userIds RETURN u")
     public List<User> findDropListUsers(@Param("userIds") List<Long> userIds);
